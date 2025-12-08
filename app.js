@@ -13,23 +13,24 @@ window.onload = async function() {
     isAdmin = true;
   }
   
-  // 获取 GitHub 配置
+  // 先渲染界面，确保页面可见
+  updateAuthUI();
+  renderTable();
+  
+  // 然后尝试获取 GitHub 配置（失败不影响页面显示）
   try {
     const configRes = await fetch('/api/config');
     if (configRes.ok) {
       githubConfig = await configRes.json();
       // 从 GitHub 加载数据
-      await loadFromGitHub();
-    } else {
-      // 使用本地数据
-      renderTable();
+      if (githubConfig.githubOwner && githubConfig.githubRepo) {
+        await loadFromGitHub();
+      }
     }
   } catch (error) {
-    console.error('获取配置失败:', error);
-    renderTable();
+    console.error('获取配置失败（使用本地数据）:', error);
+    // 静默失败，使用本地数据
   }
-  
-  updateAuthUI();
 };
 
 // ==== 登录相关 ====
