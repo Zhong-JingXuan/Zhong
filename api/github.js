@@ -48,7 +48,8 @@ module.exports = async (req, res) => {
       }
 
       const data = await response.json();
-      const content = atob(data.content.replace(/\s/g, ''));
+      // 解码 base64（Node.js 环境使用 Buffer）
+      const content = Buffer.from(data.content.replace(/\s/g, ''), 'base64').toString('utf8');
       const jsonData = JSON.parse(content);
 
       return res.status(200).json({
@@ -84,8 +85,8 @@ module.exports = async (req, res) => {
         }
       }
 
-      // 编码数据为 base64
-      const content = btoa(JSON.stringify(data, null, 2));
+      // 编码数据为 base64（Node.js 环境使用 Buffer）
+      const content = Buffer.from(JSON.stringify(data, null, 2), 'utf8').toString('base64');
 
       const body = {
         message: `Update data at ${new Date().toISOString()}`,
