@@ -120,8 +120,23 @@ async function loadFromGitHub() {
     const response = await fetch('/api/github?action=read');
     
     if (response.status === 404) {
-      showSyncStatus('GitHub 上暂无数据，使用本地数据', 'success');
-      setTimeout(() => hideSyncStatus(), 3000);
+      // GitHub 上暂无数据，如果有本地数据，尝试同步到 GitHub
+      const localTasks = JSON.parse(localStorage.getItem('tasks_v2')) || [];
+      if (localTasks.length > 0) {
+        tasks = localTasks;
+        showSyncStatus('GitHub 上暂无数据，使用本地数据，正在同步到 GitHub...', 'loading');
+        try {
+          await saveToGitHub();
+          showSyncStatus('✓ 本地数据已同步到 GitHub', 'success');
+          setTimeout(() => hideSyncStatus(), 3000);
+        } catch (error) {
+          showSyncStatus('使用本地数据，但同步到 GitHub 失败', 'error');
+          setTimeout(() => hideSyncStatus(), 5000);
+        }
+      } else {
+        showSyncStatus('GitHub 上暂无数据，使用本地数据', 'success');
+        setTimeout(() => hideSyncStatus(), 3000);
+      }
       renderTable();
       return;
     }
@@ -132,7 +147,28 @@ async function loadFromGitHub() {
 
     const result = await response.json();
     fileSha = result.sha;
-    tasks = result.data || [];
+    const githubTasks = result.data || [];
+    
+    // 如果 GitHub 返回空数组但本地有数据，保留本地数据并尝试同步
+    if (githubTasks.length === 0) {
+      const localTasks = JSON.parse(localStorage.getItem('tasks_v2')) || [];
+      if (localTasks.length > 0) {
+        tasks = localTasks;
+        showSyncStatus('GitHub 数据为空，使用本地数据，正在同步到 GitHub...', 'loading');
+        try {
+          await saveToGitHub();
+          showSyncStatus('✓ 本地数据已同步到 GitHub', 'success');
+          setTimeout(() => hideSyncStatus(), 3000);
+        } catch (error) {
+          showSyncStatus('使用本地数据，但同步到 GitHub 失败', 'error');
+          setTimeout(() => hideSyncStatus(), 5000);
+        }
+        renderTable();
+        return;
+      }
+    }
+    
+    tasks = githubTasks;
     localStorage.setItem('tasks_v2', JSON.stringify(tasks));
     
     showSyncStatus('✓ 数据已从 GitHub 同步', 'success');
