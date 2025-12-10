@@ -38,5 +38,15 @@
     "timeType": "deadline",
     "deadlineDate": "2025-12-11",
     "deadlineTime": "08:45"
+  },
+  {
+    "id": 1765370548824,
+    "createdAt": 1765370548824,
+    "event": "智能所硕士班班会",
+    "target": "ALL",
+    "detail": "线上会议",
+    "timeType": "deadline",
+    "deadlineDate": "2025-12-12",
+    "deadlineTime": "19:00"
   }
 ]
